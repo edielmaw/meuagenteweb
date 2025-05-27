@@ -9,23 +9,20 @@ app.use(bodyParser.json());
 app.post('/webhook', async (req, res) => {
   const body = req.body;
 
-  // Log para debug
   console.log('Corpo recebido:', JSON.stringify(body, null, 2));
 
   const msg = body?.text?.message || '';
-  const phone = body?.sender || ''; // aqui pegamos o ID do contato (tipo 55...@s.whatsapp.net)
+  const phoneRaw = body?.from || ''; // <-- Aqui está o número com @s.whatsapp.net
+  const phone = phoneRaw.replace('@s.whatsapp.net', '');
 
   console.log('Mensagem recebida:', msg);
   console.log('Número:', phone);
-
-  // Corrige o formato do número para envio pela Z-API
-  const numeroFormatado = phone.replace('@s.whatsapp.net', '');
 
   const resposta = 'Olá! Recebemos sua mensagem. Em breve retornaremos.';
 
   try {
     await axios.post('https://api.z-api.io/instances/3E1D541989A4908E01239EE979D4A7C0/token/B8871F7CF06847251BD657DB/send-text', {
-      phone: numeroFormatado,
+      phone,
       message: resposta
     });
 
