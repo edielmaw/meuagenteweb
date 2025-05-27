@@ -9,11 +9,11 @@ app.use(bodyParser.json());
 app.post('/webhook', async (req, res) => {
   const body = req.body;
 
-  console.log('Corpo recebido:', JSON.stringify(body, null, 2));
+  // Log para verificar o conteúdo recebido
+  console.log('📦 Corpo recebido:', JSON.stringify(body, null, 2));
 
   const msg = body?.text?.message || '';
-  const phoneRaw = body?.from || ''; // <-- Aqui está o número com @s.whatsapp.net
-  const phone = phoneRaw.replace('@s.whatsapp.net', '');
+  const phone = body?.phone || ''; // <- Agora sim, o número correto
 
   console.log('Mensagem recebida:', msg);
   console.log('Número:', phone);
