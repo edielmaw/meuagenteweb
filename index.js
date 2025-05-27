@@ -7,25 +7,28 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
 
 app.post('/webhook', async (req, res) => {
-  const msg = req.body.message;
-  const phone = req.body.phone;
+  const body = req.body;
+
+  // A Z-API envia o payload assim:
+  const msg = body?.body?.text || '';
+  const phone = body?.body?.from || '';
 
   console.log('Mensagem recebida:', msg);
+  console.log('Número:', phone);
 
-  // Mensagem de resposta
   const resposta = 'Olá! Recebemos sua mensagem. Em breve retornaremos.';
 
-  // Enviar mensagem de volta pela Z-API
-  await axios.post('https://api.z-api.io/instance000000/send-text', {
-    phone,
-    message: resposta
-  }, {
-    headers: {
-      'Authorization': 'Bearer SUA_API_KEY_AQUI'
-    }
-  });
+  try {
+    await axios.post('https://api.z-api.io/instances/3E1D541989A4908E01239EE979D4A7C0/token/B8871F7CF06847251BD657DB/send-text', {
+      phone,
+      message: resposta
+    });
 
-  res.sendStatus(200);
+    res.sendStatus(200);
+  } catch (err) {
+    console.error('Erro ao enviar resposta:', err.message);
+    res.sendStatus(500);
+  }
 });
 
 app.listen(PORT, () => {
