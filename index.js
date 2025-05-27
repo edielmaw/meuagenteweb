@@ -9,7 +9,9 @@ app.use(bodyParser.json());
 app.post('/webhook', async (req, res) => {
   const body = req.body;
 
-  // A Z-API envia o payload assim:
+  // 🔍 Log para entender o formato da mensagem da Z-API
+  console.log('Corpo recebido:', JSON.stringify(body, null, 2));
+
   const msg = body?.body?.text || '';
   const phone = body?.body?.from || '';
 
