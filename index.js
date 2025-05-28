@@ -1,38 +1,42 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const axios = require('axios');
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-app.use(bodyParser.json());
+app.use(express.json());
 
 app.post('/webhook', async (req, res) => {
-  const body = req.body;
+  const data = req.body;
+  console.log("📬 Corpo recebido: ", data);
 
-  // Log para verificar o conteúdo recebido
-  console.log('📦 Corpo recebido:', JSON.stringify(body, null, 2));
+  const message = data?.text?.message;
+  const phone = data?.phone; // Número que enviou a mensagem
+  const instanceId = data?.instanceId;
 
-  const msg = body?.text?.message || '';
-  const phone = body?.phone || ''; // <- Agora sim, o número correto
+  if (!message || !phone || !instanceId) {
+    console.log("❌ Dados incompletos");
+    return res.sendStatus(400);
+  }
 
-  console.log('Mensagem recebida:', msg);
-  console.log('Número:', phone);
-
-  const resposta = 'Olá! Recebemos sua mensagem. Em breve retornaremos.';
+  // Troque o número abaixo pelo correto e válido com 11 dígitos
+  const numeroDestino = "5541996740365";
 
   try {
-    await axios.post('https://api.z-api.io/instances/3E1D541989A4908E01239EE979D4A7C0/token/B8871F7CF06847251BD657DB/send-text', {
-      phone,
-      message: resposta
-    });
+    const response = await axios.post(
+      `https://api.z-api.io/instances/${instanceId}/token/B8871F7CF06847251BD657DB/send-text`,
+      {
+        phone: numeroDestino,
+        message: `Mensagem recebida: ${message}\nNúmero: ${phone}`
+      }
+    );
 
+    console.log("✅ Mensagem enviada com sucesso", response.data);
     res.sendStatus(200);
-  } catch (err) {
-    console.error('Erro ao enviar resposta:', err.message);
+  } catch (error) {
+    console.error("❌ Erro ao enviar resposta:", error.message);
     res.sendStatus(500);
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+app.listen(10000, () => {
+  console.log('✅ Servidor rodando na porta 10000');
 });
