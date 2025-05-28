@@ -1,42 +1,45 @@
-const express = require("express");
-const axios = require("axios");
+const express = require('express');
+const bodyParser = require('body-parser');
+const axios = require('axios');
 const app = express();
 
-app.use(express.json());
+app.use(bodyParser.json());
 
-app.post("/webhook", async (req, res) => {
-  const data = req.body;
+app.post('/webhook', async (req, res) => {
+  const mensagem = req.body.text?.message;
+  const numero = req.body.phone;
 
-  console.log("📩 Corpo recebido:", JSON.stringify(data, null, 2));
+  console.log('Mensagem recebida:', mensagem);
+  console.log('Número:', numero);
 
-  if (data.type === "ReceivedCallback" && data.text) {
-    const numero = data.phone;
-    const mensagem = "Olá! Recebemos sua mensagem e em breve retornaremos. 😉";
-
-    try {
-      const resposta = await axios.post(
-        "https://api.z-api.io/instances/3E1D541989A4908E01239EE979D4A7C0/send-text",
-        {
-          phone: numero,
-          message: mensagem
-        },
-        {
-          headers: {
-            "Client-Token": "B8871F7CF06847251BD657DB"
-          }
-        }
-      );
-
-      console.log("✅ Mensagem enviada com sucesso:", resposta.data);
-    } catch (erro) {
-      console.error("❌ Erro ao enviar resposta:", erro.response?.data || erro.message);
-    }
+  if (!mensagem || !numero) {
+    return res.status(400).send('Dados incompletos');
   }
 
-  res.sendStatus(200);
+  try {
+    const resposta = await axios.post(
+      'https://api.z-api.io/instances/3E1D541989A4908E01239EE979D4A7C0/token/B8871F7CF06847251BD657DB/send-text',
+      {
+        phone: numero,
+        message: 'Obrigado pela sua mensagem! Em breve um atendente responderá.'
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Client-Token': 'B8871F7CF06847251BD657DB'
+        }
+      }
+    );
+
+    console.log('Resposta enviada com sucesso');
+    res.status(200).send('Mensagem enviada!');
+  } catch (error) {
+    console.error('Erro ao enviar resposta:', error.response?.data || error.message);
+    res.status(500).send('Erro ao enviar resposta');
+  }
 });
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`✅ Servidor rodando na porta ${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
