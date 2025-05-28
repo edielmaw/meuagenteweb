@@ -31,7 +31,7 @@ app.post('/webhook', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.send('Servidor rodando');
+  res.send('Servidor rodando com sucesso.');
 });
 
 app.listen(10000, () => {
