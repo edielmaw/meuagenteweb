@@ -1,42 +1,37 @@
-const express = require('express');
-const axios = require('axios');
+const express = require("express");
+const axios = require("axios");
 const app = express();
 
 app.use(express.json());
 
-app.post('/webhook', async (req, res) => {
+app.post("/webhook", async (req, res) => {
   const data = req.body;
-  console.log("📬 Corpo recebido: ", data);
 
-  const message = data?.text?.message;
-  const phone = data?.phone; // Número que enviou a mensagem
-  const instanceId = data?.instanceId;
+  console.log("📩 Corpo recebido:", JSON.stringify(data, null, 2));
 
-  if (!message || !phone || !instanceId) {
-    console.log("❌ Dados incompletos");
-    return res.sendStatus(400);
+  if (data.type === "ReceivedCallback" && data.text) {
+    const numero = data.phone;
+    const mensagem = "Olá! Recebemos sua mensagem e em breve retornaremos. 😉";
+
+    try {
+      const resposta = await axios.post(
+        "https://api.z-api.io/instances/3E1D541989A4908E01239EE979D4A7C0/token/B8871F7CF06847251BD657DB/send-text",
+        {
+          phone: numero,
+          message: mensagem
+        }
+      );
+
+      console.log("✅ Mensagem enviada com sucesso:", resposta.data);
+    } catch (erro) {
+      console.error("❌ Erro ao enviar resposta:", erro.response?.data || erro.message);
+    }
   }
 
-  // Troque o número abaixo pelo correto e válido com 11 dígitos
-  const numeroDestino = "5541996740365";
-
-  try {
-    const response = await axios.post(
-      `https://api.z-api.io/instances/${instanceId}/token/B8871F7CF06847251BD657DB/send-text`,
-      {
-        phone: numeroDestino,
-        message: `Mensagem recebida: ${message}\nNúmero: ${phone}`
-      }
-    );
-
-    console.log("✅ Mensagem enviada com sucesso", response.data);
-    res.sendStatus(200);
-  } catch (error) {
-    console.error("❌ Erro ao enviar resposta:", error.message);
-    res.sendStatus(500);
-  }
+  res.sendStatus(200);
 });
 
-app.listen(10000, () => {
-  console.log('✅ Servidor rodando na porta 10000');
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`✅ Servidor rodando na porta ${PORT}`);
 });
