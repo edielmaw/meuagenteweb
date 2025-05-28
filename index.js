@@ -1,49 +1,43 @@
-const express = require("express");
-const axios = require("axios");
+const express = require('express');
+const axios = require('axios');
 const app = express();
 
 app.use(express.json());
 
-app.post("/webhook", async (req, res) => {
-  console.log("📩 Corpo recebido:", req.body);
+const instanceId = '3E1D541989A4908E01239EE979D4A7C0';
+const token = 'B8871F7CF06847251BD657DB';
+const apiUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
 
-  const message = req.body?.text?.message;
-  const phone = req.body?.phone;
+app.post('/webhook', async (req, res) => {
+  const data = req.body;
 
-  if (!message || !phone) {
-    return res.status(200).send("Mensagem ignorada");
-  }
+  // Verifica se há uma mensagem recebida
+  if (data && data.message && data.phone) {
+    const phone = data.phone;
+    const mensagemRecebida = data.message;
 
-  console.log("📨 Mensagem recebida:", message);
-  console.log("📞 Número:", phone);
+    console.log(`Mensagem recebida de ${phone}: ${mensagemRecebida}`);
 
-  try {
-    await axios.post(
-      "https://api.z-api.io/instances/3E1D541989A4908E01239EE979D4A7C0/send-text",
-      {
+    // Define a resposta automática
+    const respostaAutomatica = `Olá! Recebemos sua mensagem: "${mensagemRecebida}"`;
+
+    try {
+      // Envia a resposta automática via API da Z-API
+      const response = await axios.post(apiUrl, {
         phone,
-        message: "Olá! 👋 Recebemos sua mensagem e logo retornaremos.",
-      },
-      {
-        headers: {
-          "Client-Token": "B8871F7CF06847251BD657DB",
-        },
-      }
-    );
+        message: respostaAutomatica,
+      });
 
-    console.log("✅ Mensagem enviada com sucesso!");
-    res.sendStatus(200);
-  } catch (error) {
-    console.error("❌ Erro ao enviar resposta:", error?.response?.data || error);
-    res.sendStatus(500);
+      console.log('Mensagem enviada com sucesso:', response.data);
+    } catch (error) {
+      console.error('Erro ao enviar resposta:', error.response?.data || error.message);
+    }
   }
-});
 
-app.get("/", (req, res) => {
-  res.send("Servidor ativo para o agente do WhatsApp!");
+  res.sendStatus(200);
 });
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
