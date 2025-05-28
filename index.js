@@ -19,10 +19,15 @@ app.post("/webhook", async (req, res) => {
 
   try {
     await axios.post(
-      "https://api.z-api.io/instances/3E1D541989A4908E01239EE979D4A7C0/token/B8871F7CF06847251BD657DB/send-text",
+      "https://api.z-api.io/instances/3E1D541989A4908E01239EE979D4A7C0/send-text",
       {
         phone,
         message: "Olá! 👋 Recebemos sua mensagem e logo retornaremos.",
+      },
+      {
+        headers: {
+          "Client-Token": "B8871F7CF06847251BD657DB",
+        },
       }
     );
 
