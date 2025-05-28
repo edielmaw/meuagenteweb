@@ -1,45 +1,44 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const axios = require('axios');
+const express = require("express");
+const axios = require("axios");
 const app = express();
 
-app.use(bodyParser.json());
+app.use(express.json());
 
-app.post('/webhook', async (req, res) => {
-  const mensagem = req.body.text?.message;
-  const numero = req.body.phone;
+app.post("/webhook", async (req, res) => {
+  console.log("📩 Corpo recebido:", req.body);
 
-  console.log('Mensagem recebida:', mensagem);
-  console.log('Número:', numero);
+  const message = req.body?.text?.message;
+  const phone = req.body?.phone;
 
-  if (!mensagem || !numero) {
-    return res.status(400).send('Dados incompletos');
+  if (!message || !phone) {
+    return res.status(200).send("Mensagem ignorada");
   }
 
+  console.log("📨 Mensagem recebida:", message);
+  console.log("📞 Número:", phone);
+
   try {
-    const resposta = await axios.post(
-      'https://api.z-api.io/instances/3E1D541989A4908E01239EE979D4A7C0/token/B8871F7CF06847251BD657DB/send-text',
+    await axios.post(
+      "https://api.z-api.io/instances/3E1D541989A4908E01239EE979D4A7C0/token/B8871F7CF06847251BD657DB/send-text",
       {
-        phone: numero,
-        message: 'Obrigado pela sua mensagem! Em breve um atendente responderá.'
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Client-Token': 'B8871F7CF06847251BD657DB'
-        }
+        phone,
+        message: "Olá! 👋 Recebemos sua mensagem e logo retornaremos.",
       }
     );
 
-    console.log('Resposta enviada com sucesso');
-    res.status(200).send('Mensagem enviada!');
+    console.log("✅ Mensagem enviada com sucesso!");
+    res.sendStatus(200);
   } catch (error) {
-    console.error('Erro ao enviar resposta:', error.response?.data || error.message);
-    res.status(500).send('Erro ao enviar resposta');
+    console.error("❌ Erro ao enviar resposta:", error?.response?.data || error);
+    res.sendStatus(500);
   }
+});
+
+app.get("/", (req, res) => {
+  res.send("Servidor ativo para o agente do WhatsApp!");
 });
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
