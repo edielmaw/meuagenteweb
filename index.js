@@ -1,39 +1,45 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const axios = require('axios');
 const app = express();
+const PORT = process.env.PORT || 10000;
 
-app.use(express.json());
+// Substitua pelos seus dados reais da Z-API:
+const instanceId = '3E1D541989A4908E01239EE979D4A7C0';
+const token = 'B8871F7CF06847251BD657DB';
+
+app.use(bodyParser.json());
 
 app.post('/webhook', async (req, res) => {
-  const { message, phone } = req.body;
-  console.log('Mensagem recebida:', message);
-  console.log('Número:', phone);
-
-  if (!message || !phone) {
-    return res.status(400).send({ error: 'Mensagem ou telefone ausente' });
-  }
+  const body = req.body;
 
   try {
-    await axios.post('https://api.z-api.io/instances/3E1D541989A4908E01239EE979D4A7C0/token/B8871F7CF06847251BD657DB/send-message', {
-      phone: phone,
-      message: 'Olá! Recebemos sua mensagem: ' + message
-    }, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    const phone = body.phone;
+    const message = body?.text?.message;
 
-    res.send({ status: 'Mensagem enviada com sucesso!' });
+    console.log('Número:', phone);
+    console.log('Mensagem recebida:', message);
+
+    if (!phone || !message) {
+      return res.status(400).send('Telefone ou mensagem ausentes');
+    }
+
+    const resposta = await axios.post(
+      `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`,
+      {
+        phone,
+        message: `Recebemos sua mensagem: "${message}"`
+      }
+    );
+
+    console.log('Mensagem enviada com sucesso');
+    res.sendStatus(200);
   } catch (error) {
-    console.error('Erro ao enviar resposta:', error.response?.data || error.message);
-    res.status(500).send({ error: 'Erro ao enviar resposta' });
+    console.error('Erro ao responder mensagem:', error.message);
+    res.sendStatus(500);
   }
 });
 
-app.get('/', (req, res) => {
-  res.send('Servidor rodando com sucesso.');
-});
-
-app.listen(10000, () => {
-  console.log('Servidor rodando na porta 10000');
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
